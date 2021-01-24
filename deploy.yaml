@@ -1,0 +1,140 @@
+#
+# AUTH SERVER
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: auth-server
+  name: auth-server
+spec:
+  selector:
+    matchLabels:
+      app: auth-server
+  template:
+    metadata:
+      labels:
+        app: auth-server
+    spec:
+      containers:
+      - image: auth-server:latest
+        name: auth-server
+        imagePullPolicy: IfNotPresent
+        args:
+        - "-v"
+        - "-d"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: auth-server
+  name: auth-server
+spec:
+  ports:
+  - port: 1911
+    name: gateway-port-tcp
+    protocol: TCP
+  - port: 1911
+    protocol: UDP
+    name: gateway-port-udp
+  - port: 1912
+    name: game-server-hub-tcp
+    protocol: TCP
+  - port: 1912
+    name: game-server-hub-udp
+    protocol: UDP
+  selector:
+    app: auth-server
+---
+#
+# GAME SERVER
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: game-server
+  name: game-server
+spec:
+  selector:
+    matchLabels:
+      app: game-server
+  template:
+    metadata:
+      labels:
+        app: game-server
+    spec:
+      containers:
+      - image: game-server:latest
+        name: game-server
+        imagePullPolicy: IfNotPresent
+        args:
+        - "-v"
+        - "-d"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: game-server
+  name: game-server
+spec:
+  ports:
+  - port: 1909
+    protocol: TCP
+    nodePort: 30000
+    name: client-tcp-port
+  - port: 1909
+    protocol: UDP
+    nodePort: 30000
+    name: client-udp-port
+  selector:
+    app: game-server
+  type: NodePort
+---
+#
+# GATEWAY
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gateway-server
+  name: gateway-server
+spec:
+  selector:
+    matchLabels:
+      app: gateway-server
+  template:
+    metadata:
+      labels:
+        app: gateway-server
+    spec:
+      containers:
+      - image: gateway-server:latest
+        name: gateway-server
+        imagePullPolicy: IfNotPresent
+        args:
+        - "-v"
+        - "-d"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gateway-server
+  name: gateway-server
+spec:
+  ports:
+  - port: 1910
+    protocol: TCP
+    nodePort: 30001
+    name: client-tcp-port
+  - port: 1910
+    protocol: UDP
+    nodePort: 30001
+    name: client-udp-port
+  selector:
+    app: gateway-server
+  type: NodePort
